@@ -8,6 +8,7 @@ import sunflowerImage from "./images/zonnebloem.png"
 import { Background } from './Background'
 import { Plant } from './Plant'
 import { Bee } from './Bee'
+import { UI } from './UI'
 
 export class Game {
 
@@ -17,10 +18,11 @@ export class Game {
     private plant: Plant
     private plants: Plant[] = []
     private bee: Bee
+    private interface: UI
 
     constructor() {
         this.pixi = new PIXI.Application({ width: 800, height: 450 })
-        document.body.appendChild(this.pixi.view)
+        document.body.appendChild(this.pixi.view);
 
         this.loader = new PIXI.Loader()
         //load in textures
@@ -36,20 +38,15 @@ export class Game {
 
     doneLoading() {
         //load the textures
+        this.interface = new UI();
         this.background = new Background(this.loader.resources["bgTexture"].texture!, this);
         this.pixi.stage.addChild(this.background);
 
-        for (let i = 0; i < this.getRandomInt(5, 20); i++) {
-            this.plant = new Plant(this.loader.resources["plantTexture"].texture!,
-                this.loader.resources["violetTexture"].texture!,
-                this.loader.resources["sunflowerTexture"].texture!,
-                this)
-            this.plants.push(this.plant);
-            this.pixi.stage.addChild(this.plant);
-        }
+        this.spawnPlants();
 
         this.bee = new Bee(this.loader.resources["beeTexture"].texture!, this)
         this.pixi.stage.addChild(this.bee)
+        this.pixi.stage.addChild(this.interface)
         console.log("Loading completed")
         //start ticker
         this.pixi.ticker.add((delta: number) => this.update(delta))
@@ -59,11 +56,21 @@ export class Game {
         for (let [plantNr, plant] of this.plants.entries()) {
             plant.update(delta);
             if (this.collision(plant, this.bee)) {
+                this.bee.incrementPlantsCollected();
                 plant.hit(plantNr)
+                this.interface.addScore(1);
                 console.log(plantNr)
             }
         }
         this.bee.update();
+        for (let plant of this.plants) {
+            if (plant.getIsHit()) {
+                this.pixi.stage.removeChild(plant);
+            }
+        }
+        if (this.pixi.stage.children.length < 7) {
+            this.spawnPlants();
+        }
     }
 
     collision(plant: Plant, bee: Bee) {
@@ -84,6 +91,17 @@ export class Game {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+    }
+
+    spawnPlants() {
+        for (let i = 0; i < this.getRandomInt(5, 20); i++) {
+            this.plant = new Plant(this.loader.resources["plantTexture"].texture!,
+                this.loader.resources["violetTexture"].texture!,
+                this.loader.resources["sunflowerTexture"].texture!,
+                this)
+            this.plants.push(this.plant);
+            this.pixi.stage.addChild(this.plant);
+        }
     }
 }
 

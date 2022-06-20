@@ -6,13 +6,14 @@ export class Bee extends PIXI.Sprite {
     game: Game
     private xspeed = 0
     private yspeed = 0
+    private plantsCollected: number;
 
     constructor(texture: PIXI.Texture, game: Game) {
         super(texture)
         this.game = game
         this.x = 0
         this.y = 225
-
+        this.plantsCollected = 0;
         window.addEventListener("keydown", (e: KeyboardEvent) => this.onKeyDown(e))
         window.addEventListener("keyup", (e: KeyboardEvent) => this.onKeyUp(e))
     }
@@ -43,6 +44,7 @@ export class Bee extends PIXI.Sprite {
         }
     }
 
+
     private onKeyUp(e: KeyboardEvent): void {
         switch (e.key.toUpperCase()) {
             case "A":
@@ -58,5 +60,13 @@ export class Bee extends PIXI.Sprite {
                 this.yspeed = 0
                 break
         }
+    }
+
+    incrementPlantsCollected() {
+        this.plantsCollected++;
+    }
+
+    getPlantsCollected() {
+        return this.plantsCollected;
     }
 }
